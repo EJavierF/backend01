@@ -1,5 +1,5 @@
-import fs from 'fs';
-import { v4 as uuidv4 } from 'uuid';
+const fs = require('fs');
+const { v4: uuidv4 } = require('uuid');
 
 class CartManager {
     constructor(path) {
@@ -70,4 +70,4 @@ class CartManager {
     }
 }
 
-export default CartManager;
+module.exports = CartManager;
