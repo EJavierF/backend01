@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Productos</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 30px;
+        }
+        h1, h2 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        form div {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            box-sizing: border-box;
+            width: 100%;
+        }
+        input[type="checkbox"] {
+            margin-top: 10px;
+            transform: scale(1.2);
+        }
+        button {
+            grid-column: 1 / -1;
+            padding: 12px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        button:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+        }
+        #productsList {
+            width: 100%;
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+        .product-item {
+            background-color: #e9ecef;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        .product-item strong {
+            color: #007bff;
+        }
+        .product-item span {
+            font-size: 0.9em;
+            color: #666;
+        }
+        .product-item .status-true {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .product-item .status-false {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .message-box {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4CAF50; /* Green */
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: none; /* Hidden by default */
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .message-box.show {
+            display: block;
+            opacity: 1;
+        }
+
+        @media (max-width: 600px) {
+            form {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Agregar Nuevo Producto</h1>
+        <form id="productForm">
+            <div>
+                <label for="title">Título:</label>
+                <input type="text" id="title" name="title" required>
+            </div>
+            <div>
+                <label for="description">Descripción:</label>
+                <textarea id="description" name="description" required></textarea>
+            </div>
+            <div>
+                <label for="code">Código:</label>
+                <input type="text" id="code" name="code" required>
+            </div>
+            <div>
+                <label for="price">Precio:</label>
+                <input type="number" id="price" name="price" step="0.01" required>
+            </div>
+            <div>
+                <label for="stock">Stock:</label>
+                <input type="number" id="stock" name="stock" required>
+            </div>
+            <div>
+                <label for="category">Categoría:</label>
+                <input type="text" id="category" name="category" required>
+            </div>
+            <div>
+                <label for="thumbnails">Thumbnails (separados por coma):</label>
+                <input type="text" id="thumbnails" name="thumbnails">
+            </div>
+            <div>
+                <label for="status">Activo:</label>
+                <input type="checkbox" id="status" name="status" checked>
+            </div>
+            <button type="submit">Agregar Producto</button>
+        </form>
+    </div>
+
+    <div class="container">
+        <h2>Productos Existentes</h2>
+        <ul id="productsList">
+            {{#each products}}
+                <li class="product-item" id="product-{{this.id}}">
+                    <strong>ID:</strong> <span>{{this.id}}</span><br>
+                    <strong>Título:</strong> <span>{{this.title}}</span><br>
+                    <strong>Descripción:</strong> <span>{{this.description}}</span><br>
+                    <strong>Código:</strong> <span>{{this.code}}</span><br>
+                    <strong>Precio:</strong> <span>${{this.price}}</span><br>
+                    <strong>Stock:</strong> <span>{{this.stock}}</span><br>
+                    <strong>Categoría:</strong> <span>{{this.category}}</span><br>
+                    <strong>Estado:</strong> <span class="status-{{this.status}}">{{#if this.status}}Activo{{else}}Inactivo{{/if}}</span><br>
+                    <strong>Thumbnails:</strong> <span>{{this.thumbnails}}</span>
+                </li>
+            {{else}}
+                <p>No hay productos para mostrar.</p>
+            {{/each}}
+        </ul>
+    </div>
+
+    <div id="messageBox" class="message-box"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io(); // Conexión al servidor de WebSockets
+        const productForm = document.getElementById('productForm');
+        const productsList = document.getElementById('productsList');
+        const messageBox = document.getElementById('messageBox');
+
+        // Función para mostrar mensajes temporales
+        function showMessage(message, type = 'success') {
+            messageBox.textContent = message;
+            messageBox.className = 'message-box show';
+            if (type === 'error') {
+                messageBox.style.backgroundColor = '#dc3545'; // Red for error
+            } else {
+                messageBox.style.backgroundColor = '#4CAF50'; // Green for success
+            }
+            setTimeout(() => {
+                messageBox.classList.remove('show');
+            }, 3000); // Ocultar después de 3 segundos
+        }
+
+        // Función para agregar un producto al DOM
+        function addProductToDOM(product) {
+            const productItem = document.createElement('li');
+            productItem.className = 'product-item';
+            productItem.id = `product-${product.id}`;
+            productItem.innerHTML = `
+                <strong>ID:</strong> <span>${product.id}</span><br>
+                <strong>Título:</strong> <span>${product.title}</span><br>
+                <strong>Descripción:</strong> <span>${product.description}</span><br>
+                <strong>Código:</strong> <span>${product.code}</span><br>
+                <strong>Precio:</strong> <span>$${product.price}</span><br>
+                <strong>Stock:</strong> <span>${product.stock}</span><br>
+                <strong>Categoría:</strong> <span>${product.category}</span><br>
+                <strong>Estado:</strong> <span class="status-${product.status}">${product.status ? 'Activo' : 'Inactivo'}</span><br>
+                <strong>Thumbnails:</strong> <span>${product.thumbnails.join(', ')}</span>
+            `;
+            productsList.appendChild(productItem);
+
+            // Si había un mensaje de "No hay productos", lo eliminamos
+            const noProductsMessage = productsList.querySelector('p');
+            if (noProductsMessage && noProductsMessage.textContent === 'No hay productos para mostrar.') {
+                noProductsMessage.remove();
+            }
+        }
+
+        // Listener para el envío del formulario
+        productForm.addEventListener('submit', async (event) => {
+            event.preventDefault(); // Evitar el envío por defecto del formulario
+
+            const formData = new FormData(productForm);
+            const product = {};
+            for (const [key, value] of formData.entries()) {
+                if (key === 'price' || key === 'stock') {
+                    product[key] = Number(value);
+                } else if (key === 'status') {
+                    product[key] = value === 'on'; // Checkbox value is 'on' if checked
+                } else if (key === 'thumbnails') {
+                    product[key] = value.split(',').map(item => item.trim()).filter(item => item !== '');
+                } else {
+                    product[key] = value;
+                }
+            }
+
+            // Asegurarse de que 'status' sea false si el checkbox no está marcado
+            if (!formData.has('status')) {
+                product.status = false;
+            }
+
+            try {
+                const response = await fetch('/api/products', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(product)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage('Producto agregado exitosamente!');
+                    productForm.reset(); // Limpiar el formulario
+                    document.getElementById('status').checked = true; // Resetear checkbox a checked
+                } else {
+                    showMessage(`Error al agregar producto: ${data.error || response.statusText}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error en la solicitud:', error);
+                showMessage('Error de conexión al servidor.', 'error');
+            }
+        });
+
+        // Escuchar eventos de 'newProduct' desde el servidor WebSocket
+        socket.on('newProduct', (product) => {
+            console.log('Nuevo producto recibido por WebSocket:', product);
+            addProductToDOM(product);
+        });
+
+        // Escuchar eventos de 'deletedProduct' (opcional, para eliminar en tiempo real)
+        socket.on('deletedProduct', (productId) => {
+            console.log('Producto eliminado por WebSocket:', productId);
+            const itemToRemove = document.getElementById(`product-${productId}`);
+            if (itemToRemove) {
+                itemToRemove.remove();
+                showMessage(`Producto con ID ${productId} eliminado.`, 'success');
+                if (productsList.children.length === 0) {
+                    productsList.innerHTML = '<p>No hay productos para mostrar.</p>';
+                }
+            }
+        });
+
+        // Escuchar eventos de 'updatedProduct' (opcional, para actualizar en tiempo real)
+        socket.on('updatedProduct', (updatedProduct) => {
+            console.log('Producto actualizado por WebSocket:', updatedProduct);
+            const existingItem = document.getElementById(`product-${updatedProduct.id}`);
+            if (existingItem) {
+                existingItem.innerHTML = `
+                    <strong>ID:</strong> <span>${updatedProduct.id}</span><br>
+                    <strong>Título:</strong> <span>${updatedProduct.title}</span><br>
+                    <strong>Descripción:</strong> <span>${updatedProduct.description}</span><br>
+                    <strong>Código:</strong> <span>${updatedProduct.code}</span><br>
+                    <strong>Precio:</strong> <span>$${updatedProduct.price}</span><br>
+                    <strong>Stock:</strong> <span>${updatedProduct.stock}</span><br>
+                    <strong>Categoría:</strong> <span>${updatedProduct.category}</span><br>
+                    <strong>Estado:</strong> <span class="status-${updatedProduct.status}">${updatedProduct.status ? 'Activo' : 'Inactivo'}</span><br>
+                    <strong>Thumbnails:</strong> <span>${updatedProduct.thumbnails.join(', ')}</span>
+                `;
+                showMessage(`Producto con ID ${updatedProduct.id} actualizado.`, 'success');
+            }
+        });
+
+    </script>
+</body>
+</html>
+

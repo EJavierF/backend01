@@ -1,15 +1,21 @@
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
+const path = require('path');
 
 class CartManager {
-    constructor(path) {
-        this.path = path;
+    constructor(filePath) {
+        this.path = path.join(__dirname, filePath);
         this.carts = [];
         this.loadCarts();
     }
 
     async loadCarts() {
         try {
+            const dataDir = path.dirname(this.path);
+            if (!fs.existsSync(dataDir)) {
+                fs.mkdirSync(dataDir, { recursive: true });
+            }
+
             if (fs.existsSync(this.path)) {
                 const data = await fs.promises.readFile(this.path, 'utf8');
                 this.carts = JSON.parse(data);
@@ -17,7 +23,7 @@ class CartManager {
                 await this.saveCarts();
             }
         } catch (error) {
-            console.error('Error loading carts:', error);
+            console.error('Error al cargar carritos:', error);
             this.carts = [];
         }
     }
@@ -26,7 +32,7 @@ class CartManager {
         try {
             await fs.promises.writeFile(this.path, JSON.stringify(this.carts, null, 2));
         } catch (error) {
-            console.error('Error saving carts:', error);
+            console.error('Error al guardar carritos:', error);
         }
     }
 
@@ -58,10 +64,8 @@ class CartManager {
         const productInCartIndex = cart.products.findIndex(p => p.product === productId);
 
         if (productInCartIndex !== -1) {
-            // Si el producto ya existe, incrementar la cantidad
             cart.products[productInCartIndex].quantity += 1;
         } else {
-            // Si el producto no existe, agregarlo con cantidad 1
             cart.products.push({ product: productId, quantity: 1 });
         }
 
