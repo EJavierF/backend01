@@ -1,16 +1,18 @@
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
-const path = require('path');
+const path = require('path'); // Asegúrate de que path esté requerido aquí
 
 class ProductManager {
-    constructor(filePath) {
-        this.path = path.join(__dirname, filePath);
+    // El constructor ahora espera una ruta absoluta al archivo
+    constructor(absoluteFilePath) {
+        this.path = absoluteFilePath; // Usar la ruta absoluta directamente
         this.products = [];
         this.loadProducts();
     }
 
     async loadProducts() {
         try {
+            // Verifica si el directorio 'data' existe, si no, créalo
             const dataDir = path.dirname(this.path);
             if (!fs.existsSync(dataDir)) {
                 fs.mkdirSync(dataDir, { recursive: true });
@@ -20,7 +22,7 @@ class ProductManager {
                 const data = await fs.promises.readFile(this.path, 'utf8');
                 this.products = JSON.parse(data);
             } else {
-                await this.saveProducts();
+                await this.saveProducts(); // Crea el archivo vacío si no existe
             }
         } catch (error) {
             console.error('Error al cargar productos:', error);

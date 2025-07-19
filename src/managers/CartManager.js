@@ -1,16 +1,18 @@
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
-const path = require('path');
+const path = require('path'); // Asegúrate de que path esté requerido aquí
 
 class CartManager {
-    constructor(filePath) {
-        this.path = path.join(__dirname, filePath);
+    // El constructor ahora espera una ruta absoluta al archivo
+    constructor(absoluteFilePath) {
+        this.path = absoluteFilePath; // Usar la ruta absoluta directamente
         this.carts = [];
         this.loadCarts();
     }
 
     async loadCarts() {
         try {
+            // Verifica si el directorio 'data' existe, si no, créalo
             const dataDir = path.dirname(this.path);
             if (!fs.existsSync(dataDir)) {
                 fs.mkdirSync(dataDir, { recursive: true });
@@ -20,7 +22,7 @@ class CartManager {
                 const data = await fs.promises.readFile(this.path, 'utf8');
                 this.carts = JSON.parse(data);
             } else {
-                await this.saveCarts();
+                await this.saveCarts(); // Crea el archivo vacío si no existe
             }
         } catch (error) {
             console.error('Error al cargar carritos:', error);

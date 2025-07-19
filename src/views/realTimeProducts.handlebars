@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Productos</title>
+    <title>Gestión de Productos en Tiempo Real</title>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -69,6 +69,12 @@
             cursor: pointer;
             transition: background-color 0.3s ease, transform 0.2s ease;
         }
+        button.delete-button {
+            background-color: #dc3545;
+        }
+        button.delete-button:hover {
+            background-color: #c82333;
+        }
         button:hover {
             background-color: #218838;
             transform: translateY(-2px);
@@ -89,6 +95,7 @@
             flex-direction: column;
             gap: 8px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            position: relative; /* Para el botón de eliminar */
         }
         .product-item strong {
             color: #007bff;
@@ -104,6 +111,22 @@
         .product-item .status-false {
             color: #dc3545;
             font-weight: bold;
+        }
+        .delete-product-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: background-color 0.3s ease;
+        }
+        .delete-product-btn:hover {
+            background-color: #c82333;
         }
         .message-box {
             position: fixed;
@@ -134,47 +157,47 @@
 </head>
 <body>
     <div class="container">
-        <h1>Agregar Nuevo Producto</h1>
-        <form id="productForm">
+        <h1>Agregar Nuevo Producto (Tiempo Real)</h1>
+        <form id="realTimeProductForm">
             <div>
-                <label for="title">Título:</label>
-                <input type="text" id="title" name="title" required>
+                <label for="rt_title">Título:</label>
+                <input type="text" id="rt_title" name="title" required>
             </div>
             <div>
-                <label for="description">Descripción:</label>
-                <textarea id="description" name="description" required></textarea>
+                <label for="rt_description">Descripción:</label>
+                <textarea id="rt_description" name="description" required></textarea>
             </div>
             <div>
-                <label for="code">Código:</label>
-                <input type="text" id="code" name="code" required>
+                <label for="rt_code">Código:</label>
+                <input type="text" id="rt_code" name="code" required>
             </div>
             <div>
-                <label for="price">Precio:</label>
-                <input type="number" id="price" name="price" step="0.01" required>
+                <label for="rt_price">Precio:</label>
+                <input type="number" id="rt_price" name="price" step="0.01" required>
             </div>
             <div>
-                <label for="stock">Stock:</label>
-                <input type="number" id="stock" name="stock" required>
+                <label for="rt_stock">Stock:</label>
+                <input type="number" id="rt_stock" name="stock" required>
             </div>
             <div>
-                <label for="category">Categoría:</label>
-                <input type="text" id="category" name="category" required>
+                <label for="rt_category">Categoría:</label>
+                <input type="text" id="rt_category" name="category" required>
             </div>
             <div>
-                <label for="thumbnails">Thumbnails (separados por coma):</label>
-                <input type="text" id="thumbnails" name="thumbnails">
+                <label for="rt_thumbnails">Thumbnails (separados por coma):</label>
+                <input type="text" id="rt_thumbnails" name="thumbnails">
             </div>
             <div>
-                <label for="status">Activo:</label>
-                <input type="checkbox" id="status" name="status" checked>
+                <label for="rt_status">Activo:</label>
+                <input type="checkbox" id="rt_status" name="status" checked>
             </div>
-            <button type="submit">Agregar Producto</button>
+            <button type="submit">Agregar Producto (WS)</button>
         </form>
     </div>
 
     <div class="container">
-        <h2>Productos Existentes</h2>
-        <ul id="productsList">
+        <h2>Productos Existentes (Tiempo Real)</h2>
+        <ul id="realTimeProductsList">
             {{#each products}}
                 <li class="product-item" id="product-{{this.id}}">
                     <strong>ID:</strong> <span>{{this.id}}</span><br>
@@ -186,6 +209,7 @@
                     <strong>Categoría:</strong> <span>{{this.category}}</span><br>
                     <strong>Estado:</strong> <span class="status-{{this.status}}">{{#if this.status}}Activo{{else}}Inactivo{{/if}}</span><br>
                     <strong>Thumbnails:</strong> <span>{{this.thumbnails}}</span>
+                    <button class="delete-product-btn" data-id="{{this.id}}">Eliminar</button>
                 </li>
             {{else}}
                 <p>No hay productos para mostrar.</p>
@@ -198,8 +222,8 @@
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io(); // Conexión al servidor de WebSockets
-        const productForm = document.getElementById('productForm');
-        const productsList = document.getElementById('productsList');
+        const realTimeProductForm = document.getElementById('realTimeProductForm');
+        const realTimeProductsList = document.getElementById('realTimeProductsList');
         const messageBox = document.getElementById('messageBox');
 
         // Función para mostrar mensajes temporales
@@ -231,11 +255,12 @@
                 <strong>Categoría:</strong> <span>${product.category}</span><br>
                 <strong>Estado:</strong> <span class="status-${product.status}">${product.status ? 'Activo' : 'Inactivo'}</span><br>
                 <strong>Thumbnails:</strong> <span>${product.thumbnails.join(', ')}</span>
+                <button class="delete-product-btn" data-id="${product.id}">Eliminar</button>
             `;
-            productsList.appendChild(productItem);
+            realTimeProductsList.appendChild(productItem);
 
             // Si había un mensaje de "No hay productos", lo eliminamos
-            const noProductsMessage = productsList.querySelector('p');
+            const noProductsMessage = realTimeProductsList.querySelector('p');
             if (noProductsMessage && noProductsMessage.textContent === 'No hay productos para mostrar.') {
                 noProductsMessage.remove();
             }
@@ -246,8 +271,8 @@
             const itemToRemove = document.getElementById(`product-${productId}`);
             if (itemToRemove) {
                 itemToRemove.remove();
-                if (productsList.children.length === 0) {
-                    productsList.innerHTML = '<p>No hay productos para mostrar.</p>';
+                if (realTimeProductsList.children.length === 0) {
+                    realTimeProductsList.innerHTML = '<p>No hay productos para mostrar.</p>';
                 }
             }
         }
@@ -266,15 +291,16 @@
                     <strong>Categoría:</strong> <span>${updatedProduct.category}</span><br>
                     <strong>Estado:</strong> <span class="status-${updatedProduct.status}">${updatedProduct.status ? 'Activo' : 'Inactivo'}</span><br>
                     <strong>Thumbnails:</strong> <span>${updatedProduct.thumbnails.join(', ')}</span>
+                    <button class="delete-product-btn" data-id="${updatedProduct.id}">Eliminar</button>
                 `;
             }
         }
 
-        // Listener para el envío del formulario (HTTP)
-        productForm.addEventListener('submit', async (event) => {
+        // Listener para el envío del formulario de agregar producto (vía WebSocket)
+        realTimeProductForm.addEventListener('submit', (event) => {
             event.preventDefault();
 
-            const formData = new FormData(productForm);
+            const formData = new FormData(realTimeProductForm);
             const product = {};
             for (const [key, value] of formData.entries()) {
                 if (key === 'price' || key === 'stock') {
@@ -291,27 +317,18 @@
                 product.status = false;
             }
 
-            try {
-                const response = await fetch('/api/products', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(product)
-                });
+            // Emitir el evento WebSocket para agregar producto
+            socket.emit('addProductFromRT', product);
+            realTimeProductForm.reset(); // Limpiar el formulario
+            document.getElementById('rt_status').checked = true; // Resetear checkbox a checked
+        });
 
-                const data = await response.json();
-
-                if (response.ok) {
-                    showMessage('Producto agregado exitosamente!');
-                    productForm.reset();
-                    document.getElementById('status').checked = true;
-                } else {
-                    showMessage(`Error al agregar producto: ${data.error || response.statusText}`, 'error');
-                }
-            } catch (error) {
-                console.error('Error en la solicitud:', error);
-                showMessage('Error de conexión al servidor.', 'error');
+        // Listener para los botones de eliminar producto (delegación de eventos)
+        realTimeProductsList.addEventListener('click', (event) => {
+            if (event.target.classList.contains('delete-product-btn')) {
+                const productId = event.target.dataset.id;
+                // Emitir el evento WebSocket para eliminar producto
+                socket.emit('deleteProductFromRT', productId);
             }
         });
 
@@ -319,6 +336,7 @@
         socket.on('newProduct', (product) => {
             console.log('Nuevo producto recibido por WebSocket:', product);
             addProductToDOM(product);
+            showMessage('Producto agregado exitosamente!');
         });
 
         // Escuchar eventos de 'deletedProduct' desde el servidor WebSocket
@@ -333,6 +351,12 @@
             console.log('Producto actualizado por WebSocket:', updatedProduct);
             updateProductInDOM(updatedProduct);
             showMessage(`Producto con ID ${updatedProduct.id} actualizado.`, 'success');
+        });
+
+        // Escuchar eventos de error del servidor
+        socket.on('productError', (error) => {
+            console.error('Error del servidor (WebSocket):', error.message);
+            showMessage(`Error: ${error.message}`, 'error');
         });
 
     </script>
