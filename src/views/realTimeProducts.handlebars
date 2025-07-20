@@ -4,156 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Productos en Tiempo Real</title>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f4f7f6;
-            color: #333;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .container {
-            background-color: #ffffff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 800px;
-            margin-bottom: 30px;
-        }
-        h1, h2 {
-            color: #2c3e50;
-            text-align: center;
-            margin-bottom: 25px;
-        }
-        form {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-        form div {
-            display: flex;
-            flex-direction: column;
-        }
-        label {
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
-        }
-        input[type="text"],
-        input[type="number"],
-        textarea {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 1em;
-            box-sizing: border-box;
-            width: 100%;
-        }
-        input[type="checkbox"] {
-            margin-top: 10px;
-            transform: scale(1.2);
-        }
-        button {
-            grid-column: 1 / -1;
-            padding: 12px 20px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1em;
-            cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-        }
-        button.delete-button {
-            background-color: #dc3545;
-        }
-        button.delete-button:hover {
-            background-color: #c82333;
-        }
-        button:hover {
-            background-color: #218838;
-            transform: translateY(-2px);
-        }
-        #productsList {
-            width: 100%;
-            list-style: none;
-            padding: 0;
-            margin-top: 20px;
-        }
-        .product-item {
-            background-color: #e9ecef;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-            position: relative; /* Para el botón de eliminar */
-        }
-        .product-item strong {
-            color: #007bff;
-        }
-        .product-item span {
-            font-size: 0.9em;
-            color: #666;
-        }
-        .product-item .status-true {
-            color: #28a745;
-            font-weight: bold;
-        }
-        .product-item .status-false {
-            color: #dc3545;
-            font-weight: bold;
-        }
-        .delete-product-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 5px 10px;
-            cursor: pointer;
-            font-size: 0.8em;
-            transition: background-color 0.3s ease;
-        }
-        .delete-product-btn:hover {
-            background-color: #c82333;
-        }
-        .message-box {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #4CAF50; /* Green */
-            color: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-            display: none; /* Hidden by default */
-            opacity: 0;
-            transition: opacity 0.5s ease-in-out;
-        }
-        .message-box.show {
-            display: block;
-            opacity: 1;
-        }
-
-        @media (max-width: 600px) {
-            form {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <div class="container">
@@ -199,8 +50,8 @@
         <h2>Productos Existentes (Tiempo Real)</h2>
         <ul id="realTimeProductsList">
             {{#each products}}
-                <li class="product-item" id="product-{{this.id}}">
-                    <strong>ID:</strong> <span>{{this.id}}</span><br>
+                <li class="product-item" id="product-{{this._id}}">
+                    <strong>ID:</strong> <span>{{this._id}}</span><br>
                     <strong>Título:</strong> <span>{{this.title}}</span><br>
                     <strong>Descripción:</strong> <span>{{this.description}}</span><br>
                     <strong>Código:</strong> <span>{{this.code}}</span><br>
@@ -209,7 +60,7 @@
                     <strong>Categoría:</strong> <span>{{this.category}}</span><br>
                     <strong>Estado:</strong> <span class="status-{{this.status}}">{{#if this.status}}Activo{{else}}Inactivo{{/if}}</span><br>
                     <strong>Thumbnails:</strong> <span>{{this.thumbnails}}</span>
-                    <button class="delete-product-btn" data-id="{{this.id}}">Eliminar</button>
+                    <button class="delete-product-btn" data-id="{{this._id}}">Eliminar</button>
                 </li>
             {{else}}
                 <p>No hay productos para mostrar.</p>
@@ -244,9 +95,9 @@
         function addProductToDOM(product) {
             const productItem = document.createElement('li');
             productItem.className = 'product-item';
-            productItem.id = `product-${product.id}`;
+            productItem.id = `product-${product._id}`; // Usar _id de MongoDB
             productItem.innerHTML = `
-                <strong>ID:</strong> <span>${product.id}</span><br>
+                <strong>ID:</strong> <span>${product._id}</span><br>
                 <strong>Título:</strong> <span>${product.title}</span><br>
                 <strong>Descripción:</strong> <span>${product.description}</span><br>
                 <strong>Código:</strong> <span>${product.code}</span><br>
@@ -255,7 +106,7 @@
                 <strong>Categoría:</strong> <span>${product.category}</span><br>
                 <strong>Estado:</strong> <span class="status-${product.status}">${product.status ? 'Activo' : 'Inactivo'}</span><br>
                 <strong>Thumbnails:</strong> <span>${product.thumbnails.join(', ')}</span>
-                <button class="delete-product-btn" data-id="${product.id}">Eliminar</button>
+                <button class="delete-product-btn" data-id="${product._id}">Eliminar</button>
             `;
             realTimeProductsList.appendChild(productItem);
 
@@ -279,10 +130,10 @@
 
         // Función para actualizar un producto en el DOM
         function updateProductInDOM(updatedProduct) {
-            const existingItem = document.getElementById(`product-${updatedProduct.id}`);
+            const existingItem = document.getElementById(`product-${updatedProduct._id}`);
             if (existingItem) {
                 existingItem.innerHTML = `
-                    <strong>ID:</strong> <span>${updatedProduct.id}</span><br>
+                    <strong>ID:</strong> <span>${updatedProduct._id}</span><br>
                     <strong>Título:</strong> <span>${updatedProduct.title}</span><br>
                     <strong>Descripción:</strong> <span>${updatedProduct.description}</span><br>
                     <strong>Código:</strong> <span>${updatedProduct.code}</span><br>
@@ -291,7 +142,7 @@
                     <strong>Categoría:</strong> <span>${updatedProduct.category}</span><br>
                     <strong>Estado:</strong> <span class="status-${updatedProduct.status}">${updatedProduct.status ? 'Activo' : 'Inactivo'}</span><br>
                     <strong>Thumbnails:</strong> <span>${updatedProduct.thumbnails.join(', ')}</span>
-                    <button class="delete-product-btn" data-id="${updatedProduct.id}">Eliminar</button>
+                    <button class="delete-product-btn" data-id="${updatedProduct._id}">Eliminar</button>
                 `;
             }
         }
@@ -350,7 +201,7 @@
         socket.on('updatedProduct', (updatedProduct) => {
             console.log('Producto actualizado por WebSocket:', updatedProduct);
             updateProductInDOM(updatedProduct);
-            showMessage(`Producto con ID ${updatedProduct.id} actualizado.`, 'success');
+            showMessage(`Producto con ID ${updatedProduct._id} actualizado.`, 'success');
         });
 
         // Escuchar eventos de error del servidor

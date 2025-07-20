@@ -1,23 +1,27 @@
 const express = require('express');
-const { createServer } = require('http');
-const { Server } = require('socket.io');
-const exphbs = require('express-handlebars');
-const path = require('path');
+const { createServer } = require('http'); // Necesario para Socket.IO
+const { Server } = require('socket.io'); // Importar Server de socket.io
+const exphbs = require('express-handlebars'); // Importar express-handlebars
+const path = require('path'); // Para manejar rutas de archivos
 
-// Importar ProductManager para usarlo en los eventos de WebSocket
-const ProductManager = require('./managers/ProductManager.js');
+// Importar la configuración de la base de datos y los managers
+const connectDB = require('./db/config');
+const ProductManager = require('./managers/ProductManager.js'); // Importar el manager de productos
+// No necesitamos importar CartManager aquí directamente, ya que se instancia en su propio router
 
 const app = express();
 const PORT = 8080;
 
-// Calcular la ruta absoluta a la carpeta 'src'
-const srcDir = __dirname;
-// Calcular la ruta absoluta a la carpeta 'data'
-const dataDir = path.join(srcDir, 'data');
+// Conectar a la base de datos MongoDB
+connectDB();
 
-// Inicializar ProductManager con la ruta correcta
-const productsFilePath = path.join(dataDir, 'products.json');
-const productManager = new ProductManager(productsFilePath);
+// Calcular la ruta absoluta a la carpeta 'src'
+// __dirname en app.js es la ruta al directorio 'src'
+const srcDir = __dirname;
+
+// Inicializar ProductManager para usarlo en los eventos de WebSocket
+// Ya no necesita una ruta de archivo porque interactúa con Mongoose
+const productManager = new ProductManager();
 
 // Crear un servidor HTTP a partir de la aplicación Express
 const httpServer = createServer(app);
@@ -26,12 +30,12 @@ const io = new Server(httpServer);
 
 // Configuración de Handlebars
 app.engine('handlebars', exphbs.engine({
-    defaultLayout: false
+    defaultLayout: false // No usar un layout por defecto, las vistas son completas
 }));
 app.set('view engine', 'handlebars');
-app.set('views', path.join(srcDir, 'views'));
+app.set('views', path.join(srcDir, 'views')); // Establecer la ruta de las vistas
 
-// Middleware para servir archivos estáticos (como el cliente de Socket.IO)
+// Middleware para servir archivos estáticos (CSS, JS del cliente, imágenes, etc.)
 app.use(express.static(path.join(srcDir, 'public')));
 
 // Middleware para parsear JSON en el cuerpo de las solicitudes
@@ -40,13 +44,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Importar los routers y pasarles las dependencias necesarias
+// productsRouter necesita 'io' para emitir eventos de WebSocket
+// cartsRouter y viewsRouter no necesitan 'dataDir' ya que los managers ahora usan Mongoose
 const productsRouter = require('./routes/products.router.js');
 const cartsRouter = require('./routes/carts.router.js');
-const viewsRouter = require('./routes/views.router.js'); // Este router ahora maneja ambas vistas
+const viewsRouter = require('./routes/views.router.js');
 
-app.use('/api/products', productsRouter(io, dataDir)); // Pasar 'io' y 'dataDir'
-app.use('/api/carts', cartsRouter(dataDir)); // Pasar 'dataDir'
-app.use('/', viewsRouter(dataDir)); // Pasar 'dataDir' al router de vistas
+app.use('/api/products', productsRouter(io)); // Pasar 'io' al router de productos
+app.use('/api/carts', cartsRouter()); // Ya no necesita dataDir
+app.use('/', viewsRouter()); // Ya no necesita dataDir al instanciar managers
 
 // Manejo de conexiones de Socket.IO
 io.on('connection', (socket) => {
@@ -88,7 +94,7 @@ io.on('connection', (socket) => {
 // Iniciar el servidor HTTP (no el app de Express directamente)
 httpServer.listen(PORT, () => {
     console.log(`Servidor escuchando en el puerto ${PORT}`);
-    console.log(`Puedes acceder a la página de productos (HTTP) en: http://localhost:${PORT}`);
+    console.log(`Puedes acceder a la página de productos (HTTP) en: http://localhost:${PORT}/products`);
     console.log(`Puedes acceder a la página de productos (Real-Time) en: http://localhost:${PORT}/realtimeproducts`);
     console.log(`Las rutas API siguen disponibles en: http://localhost:${PORT}/api/products y http://localhost:${PORT}/api/carts`);
 });

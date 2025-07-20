@@ -1,107 +1,115 @@
-const fs = require('fs');
-const { v4: uuidv4 } = require('uuid');
-const path = require('path'); // Asegúrate de que path esté requerido aquí
+const Product = require('../dao/models/Product');
 
 class ProductManager {
-    // El constructor ahora espera una ruta absoluta al archivo
-    constructor(absoluteFilePath) {
-        this.path = absoluteFilePath; // Usar la ruta absoluta directamente
-        this.products = [];
-        this.loadProducts();
-    }
-
-    async loadProducts() {
-        try {
-            // Verifica si el directorio 'data' existe, si no, créalo
-            const dataDir = path.dirname(this.path);
-            if (!fs.existsSync(dataDir)) {
-                fs.mkdirSync(dataDir, { recursive: true });
-            }
-
-            if (fs.existsSync(this.path)) {
-                const data = await fs.promises.readFile(this.path, 'utf8');
-                this.products = JSON.parse(data);
-            } else {
-                await this.saveProducts(); // Crea el archivo vacío si no existe
-            }
-        } catch (error) {
-            console.error('Error al cargar productos:', error);
-            this.products = [];
-        }
-    }
-
-    async saveProducts() {
-        try {
-            await fs.promises.writeFile(this.path, JSON.stringify(this.products, null, 2));
-        } catch (error) {
-            console.error('Error al guardar productos:', error);
-        }
+    constructor() {
+        // El constructor ya no necesita una ruta de archivo, interactúa directamente con el modelo de Mongoose.
     }
 
     async addProduct(product) {
-        const { title, description, code, price, status = true, stock, category, thumbnails = [] } = product;
-
-        if (!title || !description || !code || !price || !stock || !category) {
-            throw new Error('Todos los campos obligatorios son requeridos: title, description, code, price, stock, category.');
+        try {
+            const newProduct = new Product(product);
+            await newProduct.save();
+            return newProduct.toObject(); // Devolver un objeto plano
+        } catch (error) {
+            console.error('Error al agregar producto en DB:', error);
+            throw new Error('Error al agregar producto.');
         }
-
-        const newProduct = {
-            id: uuidv4(),
-            title,
-            description,
-            code,
-            price,
-            status,
-            stock,
-            category,
-            thumbnails,
-        };
-
-        this.products.push(newProduct);
-        await this.saveProducts();
-        return newProduct;
     }
 
-    async getProducts() {
-        return this.products;
+    // Método para obtener productos con paginación, filtros y ordenamiento
+    async getProductsPaginated(limit = 10, page = 1, sort = null, query = {}) {
+        try {
+            const options = {
+                limit: parseInt(limit),
+                page: parseInt(page),
+                lean: true, // Devolver objetos JavaScript planos (más rápido para Handlebars)
+                sort: {}
+            };
+
+            // Aplicar ordenamiento por precio si se especifica
+            if (sort === 'asc') {
+                options.sort.price = 1; // 1 para ascendente
+            } else if (sort === 'desc') {
+                options.sort.price = -1; // -1 para descendente
+            }
+
+            // Construir filtro de consulta
+            let filter = {};
+            if (query.category) {
+                filter.category = query.category;
+            }
+            // Para buscar por disponibilidad (status)
+            if (query.status !== undefined) {
+                filter.status = query.status; // Asume que 'status' es un booleano (true/false)
+            }
+            // Puedes añadir más filtros aquí (ej. por 'code', 'title', etc.)
+
+            const result = await Product.paginate(filter, options);
+
+            // Construir los links para la paginación
+            // Nota: Los links se construirán en el router de vistas para tener acceso a req.protocol y req.get('host')
+            // Aquí solo devolvemos los datos necesarios para que el router los construya.
+            return {
+                status: 'success',
+                payload: result.docs,
+                totalPages: result.totalPages,
+                prevPage: result.prevPage,
+                nextPage: result.nextPage,
+                page: result.page,
+                hasPrevPage: result.hasPrevPage,
+                hasNextPage: result.hasNextPage,
+                // prevLink y nextLink se construirán en el router de vistas
+            };
+
+        } catch (error) {
+            console.error('Error al obtener productos paginados:', error);
+            return {
+                status: 'error',
+                payload: [],
+                message: 'Error al obtener productos paginados.'
+            };
+        }
     }
 
     async getProductById(id) {
-        const product = this.products.find(p => p.id === id);
-        if (!product) {
-            throw new Error('Producto no encontrado.');
+        try {
+            const product = await Product.findById(id).lean();
+            if (!product) {
+                throw new Error('Producto no encontrado.');
+            }
+            return product;
+        } catch (error) {
+            console.error('Error al obtener producto por ID en DB:', error);
+            throw new Error('Error al obtener producto.');
         }
-        return product;
     }
 
     async updateProduct(id, updatedFields) {
-        let productIndex = this.products.findIndex(p => p.id === id);
-        if (productIndex === -1) {
-            throw new Error('Producto no encontrado para actualizar.');
+        try {
+            // No permitir actualizar ni eliminar el ID
+            delete updatedFields.id;
+            const updatedProduct = await Product.findByIdAndUpdate(id, updatedFields, { new: true }).lean();
+            if (!updatedProduct) {
+                throw new Error('Producto no encontrado para actualizar.');
+            }
+            return updatedProduct;
+        } catch (error) {
+            console.error('Error al actualizar producto en DB:', error);
+            throw new Error('Error al actualizar producto.');
         }
-
-        const productToUpdate = { ...this.products[productIndex] };
-
-        delete updatedFields.id;
-
-        const updatedProduct = {
-            ...productToUpdate,
-            ...updatedFields
-        };
-
-        this.products[productIndex] = updatedProduct;
-        await this.saveProducts();
-        return updatedProduct;
     }
 
     async deleteProduct(id) {
-        const initialLength = this.products.length;
-        this.products = this.products.filter(p => p.id !== id);
-        if (this.products.length === initialLength) {
-            throw new Error('Producto no encontrado para eliminar.');
+        try {
+            const result = await Product.findByIdAndDelete(id);
+            if (!result) {
+                throw new Error('Producto no encontrado para eliminar.');
+            }
+            return { message: 'Producto eliminado exitosamente.' };
+        } catch (error) {
+            console.error('Error al eliminar producto en DB:', error);
+            throw new Error('Error al eliminar producto.');
         }
-        await this.saveProducts();
-        return { message: 'Producto eliminado exitosamente.' };
     }
 }
 

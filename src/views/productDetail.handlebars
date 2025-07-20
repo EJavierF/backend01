@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle del Producto: {{product.title}}</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Detalle del Producto</h1>
+        {{#with product}}
+            <div class="product-detail-card">
+                <h2>{{title}}</h2>
+                <p><strong>ID:</strong> <span>{{_id}}</span></p>
+                <p><strong>Descripción:</strong> <span>{{description}}</span></p>
+                <p><strong>Código:</strong> <span>{{code}}</span></p>
+                <p><strong>Precio:</strong> <span>${{price}}</span></p>
+                <p><strong>Stock:</strong> <span>{{stock}}</span></p>
+                <p><strong>Categoría:</strong> <span>{{category}}</span></p>
+                <p><strong>Estado:</strong> <span class="status-{{status}}">{{#if status}}Activo{{else}}Inactivo{{/if}}</span></p>
+                <p><strong>Thumbnails:</strong> <span>{{thumbnails}}</span></p>
+                <div class="product-actions">
+                    <button class="button add-to-cart-button" data-product-id="{{_id}}">Agregar al Carrito</button>
+                    <a href="/products" class="button back-button">Volver a Productos</a>
+                </div>
+            </div>
+        {{else}}
+            <p>Producto no encontrado.</p>
+        {{/with}}
+    </div>
+
+    <div id="messageBox" class="message-box"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io(); // Conexión al servidor de WebSockets
+        const messageBox = document.getElementById('messageBox');
+
+        function showMessage(message, type = 'success') {
+            messageBox.textContent = message;
+            messageBox.className = 'message-box show';
+            if (type === 'error') {
+                messageBox.style.backgroundColor = '#dc3545';
+            } else {
+                messageBox.style.backgroundColor = '#4CAF50';
+            }
+            setTimeout(() => {
+                messageBox.classList.remove('show');
+            }, 3000);
+        }
+
+        // Listener para el botón "Agregar al Carrito"
+        const addToCartButton = document.querySelector('.add-to-cart-button');
+        if (addToCartButton) {
+            addToCartButton.addEventListener('click', async (event) => {
+                const productId = event.target.dataset.productId;
+                // ID de carrito hardcodeado para demostración. En una app real, vendría de la sesión del usuario.
+                // Asegúrate de que este ID de carrito exista en tu DB o crea uno si no existe.
+                const cartId = '6699a221f7c7b8e2b8c9d0e1'; // <-- ¡IMPORTANTE! Reemplaza con un ID de carrito válido de tu DB
+
+                try {
+                    const response = await fetch(`/api/carts/${cartId}/product/${productId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        showMessage('Producto agregado al carrito!');
+                    } else {
+                        showMessage(`Error al agregar producto al carrito: ${data.message || response.statusText}`, 'error');
+                    }
+                } catch (error) {
+                    console.error('Error en la solicitud para agregar al carrito:', error);
+                    showMessage('Error de conexión al servidor al agregar al carrito.', 'error');
+                }
+            });
+        }
+
+        // Puedes añadir listeners de socket aquí si quieres que el detalle del producto se actualice en tiempo real
+        // si el producto es modificado o eliminado por otra vista.
+        // socket.on('updatedProduct', (updatedProduct) => { ... });
+        // socket.on('deletedProduct', (productId) => { ... });
+    </script>
+</body>
+</html>

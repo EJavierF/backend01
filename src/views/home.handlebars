@@ -3,181 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Productos</title>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f4f7f6;
-            color: #333;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .container {
-            background-color: #ffffff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 800px;
-            margin-bottom: 30px;
-        }
-        h1, h2 {
-            color: #2c3e50;
-            text-align: center;
-            margin-bottom: 25px;
-        }
-        form {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-        form div {
-            display: flex;
-            flex-direction: column;
-        }
-        label {
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
-        }
-        input[type="text"],
-        input[type="number"],
-        textarea {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 1em;
-            box-sizing: border-box;
-            width: 100%;
-        }
-        input[type="checkbox"] {
-            margin-top: 10px;
-            transform: scale(1.2);
-        }
-        button {
-            grid-column: 1 / -1;
-            padding: 12px 20px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1em;
-            cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-        }
-        button:hover {
-            background-color: #218838;
-            transform: translateY(-2px);
-        }
-        #productsList {
-            width: 100%;
-            list-style: none;
-            padding: 0;
-            margin-top: 20px;
-        }
-        .product-item {
-            background-color: #e9ecef;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-        }
-        .product-item strong {
-            color: #007bff;
-        }
-        .product-item span {
-            font-size: 0.9em;
-            color: #666;
-        }
-        .product-item .status-true {
-            color: #28a745;
-            font-weight: bold;
-        }
-        .product-item .status-false {
-            color: #dc3545;
-            font-weight: bold;
-        }
-        .message-box {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #4CAF50; /* Green */
-            color: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-            display: none; /* Hidden by default */
-            opacity: 0;
-            transition: opacity 0.5s ease-in-out;
-        }
-        .message-box.show {
-            display: block;
-            opacity: 1;
-        }
-
-        @media (max-width: 600px) {
-            form {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    <title>Lista de Productos</title>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <div class="container">
-        <h1>Agregar Nuevo Producto</h1>
-        <form id="productForm">
-            <div>
-                <label for="title">Título:</label>
-                <input type="text" id="title" name="title" required>
-            </div>
-            <div>
-                <label for="description">Descripción:</label>
-                <textarea id="description" name="description" required></textarea>
-            </div>
-            <div>
-                <label for="code">Código:</label>
-                <input type="text" id="code" name="code" required>
-            </div>
-            <div>
-                <label for="price">Precio:</label>
-                <input type="number" id="price" name="price" step="0.01" required>
-            </div>
-            <div>
-                <label for="stock">Stock:</label>
-                <input type="number" id="stock" name="stock" required>
-            </div>
-            <div>
-                <label for="category">Categoría:</label>
-                <input type="text" id="category" name="category" required>
-            </div>
-            <div>
-                <label for="thumbnails">Thumbnails (separados por coma):</label>
-                <input type="text" id="thumbnails" name="thumbnails">
-            </div>
-            <div>
-                <label for="status">Activo:</label>
-                <input type="checkbox" id="status" name="status" checked>
-            </div>
-            <button type="submit">Agregar Producto</button>
-        </form>
-    </div>
+        <h1>Productos Disponibles</h1>
 
-    <div class="container">
-        <h2>Productos Existentes</h2>
+        <div class="filter-sort-form">
+            <form id="filterSortForm">
+                <div>
+                    <label for="limit">Límite:</label>
+                    <input type="number" id="limit" name="limit" value="{{pagination.limit}}">
+                </div>
+                <div>
+                    <label for="page">Página:</label>
+                    <input type="number" id="page" name="page" value="{{pagination.page}}">
+                </div>
+                <div>
+                    <label for="sort">Ordenar por Precio:</label>
+                    <select id="sort" name="sort">
+                        <option value="">Sin ordenar</option>
+                        <option value="asc" {{#if (eq pagination.sort "asc")}}selected{{/if}}>Ascendente</option>
+                        <option value="desc" {{#if (eq pagination.sort "desc")}}selected{{/if}}>Descendente</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="category">Categoría:</label>
+                    <input type="text" id="category" name="category" value="{{pagination.query.category}}">
+                </div>
+                <div>
+                    <label for="status">Estado:</label>
+                    <select id="status" name="status">
+                        <option value="">Todos</option>
+                        <option value="true" {{#if (eq pagination.query.status "true")}}selected{{/if}}>Activo</option>
+                        <option value="false" {{#if (eq pagination.query.status "false")}}selected{{/if}}>Inactivo</option>
+                    </select>
+                </div>
+                <button type="submit">Aplicar Filtros</button>
+            </form>
+        </div>
+
         <ul id="productsList">
             {{#each products}}
-                <li class="product-item" id="product-{{this.id}}">
-                    <strong>ID:</strong> <span>{{this.id}}</span><br>
+                <li class="product-item" id="product-{{this._id}}">
+                    <strong>ID:</strong> <span>{{this._id}}</span><br>
                     <strong>Título:</strong> <span>{{this.title}}</span><br>
                     <strong>Descripción:</strong> <span>{{this.description}}</span><br>
                     <strong>Código:</strong> <span>{{this.code}}</span><br>
@@ -185,44 +55,63 @@
                     <strong>Stock:</strong> <span>{{this.stock}}</span><br>
                     <strong>Categoría:</strong> <span>{{this.category}}</span><br>
                     <strong>Estado:</strong> <span class="status-{{this.status}}">{{#if this.status}}Activo{{else}}Inactivo{{/if}}</span><br>
-                    <strong>Thumbnails:</strong> <span>{{this.thumbnails}}</span>
+                    <strong>Thumbnails:</strong> <span>{{this.thumbnails}}</span><br>
+                    <div class="product-actions">
+                        <a href="/products/{{this._id}}" class="button view-details-button">Ver Detalles</a>
+                        <button class="button add-to-cart-button" data-product-id="{{this._id}}">Agregar al Carrito</button>
+                    </div>
                 </li>
             {{else}}
                 <p>No hay productos para mostrar.</p>
             {{/each}}
         </ul>
+
+        <div class="pagination-controls">
+            {{#if pagination.hasPrevPage}}
+                <a href="{{pagination.prevLink}}" class="button">Página Anterior</a>
+            {{/if}}
+            <span>Página {{pagination.page}} de {{pagination.totalPages}}</span>
+            {{#if pagination.hasNextPage}}
+                <a href="{{pagination.nextLink}}" class="button">Página Siguiente</a>
+            {{/if}}
+        </div>
     </div>
 
     <div id="messageBox" class="message-box"></div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        const socket = io(); // Conexión al servidor de WebSockets
-        const productForm = document.getElementById('productForm');
+        const socket = io();
         const productsList = document.getElementById('productsList');
         const messageBox = document.getElementById('messageBox');
+        const filterSortForm = document.getElementById('filterSortForm');
 
-        // Función para mostrar mensajes temporales
+        // Helper para Handlebars para comparar valores (necesario para el select de sort)
+        // Esto es un helper de Handlebars del lado del servidor. No es necesario en el JS del cliente a menos que renderices plantillas en el cliente.
+        // Lo mantengo aquí como referencia, pero el servidor ya lo maneja.
+
         function showMessage(message, type = 'success') {
             messageBox.textContent = message;
             messageBox.className = 'message-box show';
             if (type === 'error') {
-                messageBox.style.backgroundColor = '#dc3545'; // Red for error
+                messageBox.style.backgroundColor = '#dc3545';
             } else {
-                messageBox.style.backgroundColor = '#4CAF50'; // Green for success
+                messageBox.style.backgroundColor = '#4CAF50';
             }
             setTimeout(() => {
                 messageBox.classList.remove('show');
-            }, 3000); // Ocultar después de 3 segundos
+            }, 3000);
         }
 
-        // Función para agregar un producto al DOM
+        // Esta función ya no es estrictamente necesaria para 'home.handlebars'
+        // porque la página se recarga con la paginación.
+        // Sin embargo, se mantiene por si se quiere un comportamiento más dinámico en el futuro.
         function addProductToDOM(product) {
             const productItem = document.createElement('li');
             productItem.className = 'product-item';
-            productItem.id = `product-${product.id}`;
+            productItem.id = `product-${product._id}`;
             productItem.innerHTML = `
-                <strong>ID:</strong> <span>${product.id}</span><br>
+                <strong>ID:</strong> <span>${product._id}</span><br>
                 <strong>Título:</strong> <span>${product.title}</span><br>
                 <strong>Descripción:</strong> <span>${product.description}</span><br>
                 <strong>Código:</strong> <span>${product.code}</span><br>
@@ -230,18 +119,19 @@
                 <strong>Stock:</strong> <span>${product.stock}</span><br>
                 <strong>Categoría:</strong> <span>${product.category}</span><br>
                 <strong>Estado:</strong> <span class="status-${product.status}">${product.status ? 'Activo' : 'Inactivo'}</span><br>
-                <strong>Thumbnails:</strong> <span>${product.thumbnails.join(', ')}</span>
+                <strong>Thumbnails:</strong> <span>${product.thumbnails.join(', ')}</span><br>
+                <div class="product-actions">
+                    <a href="/products/${product._id}" class="button view-details-button">Ver Detalles</a>
+                    <button class="button add-to-cart-button" data-product-id="${product._id}">Agregar al Carrito</button>
+                </div>
             `;
-            productsList.appendChild(productItem);
-
-            // Si había un mensaje de "No hay productos", lo eliminamos
+            // productsList.appendChild(productItem); // No agregar directamente para mantener paginación
             const noProductsMessage = productsList.querySelector('p');
             if (noProductsMessage && noProductsMessage.textContent === 'No hay productos para mostrar.') {
                 noProductsMessage.remove();
             }
         }
 
-        // Función para eliminar un producto del DOM
         function removeProductFromDOM(productId) {
             const itemToRemove = document.getElementById(`product-${productId}`);
             if (itemToRemove) {
@@ -252,12 +142,11 @@
             }
         }
 
-        // Función para actualizar un producto en el DOM
         function updateProductInDOM(updatedProduct) {
-            const existingItem = document.getElementById(`product-${updatedProduct.id}`);
+            const existingItem = document.getElementById(`product-${updatedProduct._id}`);
             if (existingItem) {
                 existingItem.innerHTML = `
-                    <strong>ID:</strong> <span>${updatedProduct.id}</span><br>
+                    <strong>ID:</strong> <span>${updatedProduct._id}</span><br>
                     <strong>Título:</strong> <span>${updatedProduct.title}</span><br>
                     <strong>Descripción:</strong> <span>${updatedProduct.description}</span><br>
                     <strong>Código:</strong> <span>${updatedProduct.code}</span><br>
@@ -265,74 +154,92 @@
                     <strong>Stock:</strong> <span>${updatedProduct.stock}</span><br>
                     <strong>Categoría:</strong> <span>${updatedProduct.category}</span><br>
                     <strong>Estado:</strong> <span class="status-${updatedProduct.status}">${updatedProduct.status ? 'Activo' : 'Inactivo'}</span><br>
-                    <strong>Thumbnails:</strong> <span>${updatedProduct.thumbnails.join(', ')}</span>
+                    <strong>Thumbnails:</strong> <span>${updatedProduct.thumbnails.join(', ')}</span><br>
+                    <div class="product-actions">
+                        <a href="/products/${updatedProduct._id}" class="button view-details-button">Ver Detalles</a>
+                        <button class="button add-to-cart-button" data-product-id="${updatedProduct._id}">Agregar al Carrito</button>
+                    </div>
                 `;
             }
         }
 
-        // Listener para el envío del formulario (HTTP)
-        productForm.addEventListener('submit', async (event) => {
+        // Listener para el formulario de filtros y ordenamiento
+        filterSortForm.addEventListener('submit', (event) => {
             event.preventDefault();
+            const formData = new FormData(filterSortForm);
+            const params = new URLSearchParams();
 
-            const formData = new FormData(productForm);
-            const product = {};
-            for (const [key, value] of formData.entries()) {
-                if (key === 'price' || key === 'stock') {
-                    product[key] = Number(value);
-                } else if (key === 'status') {
-                    product[key] = value === 'on';
-                } else if (key === 'thumbnails') {
-                    product[key] = value.split(',').map(item => item.trim()).filter(item => item !== '');
-                } else {
-                    product[key] = value;
-                }
+            const limit = formData.get('limit');
+            const page = formData.get('page');
+            const sort = formData.get('sort');
+            const category = formData.get('category');
+            const status = formData.get('status');
+
+            if (limit) params.append('limit', limit);
+            if (page) params.append('page', page);
+            if (sort) params.append('sort', sort);
+
+            let queryObj = {};
+            if (category) queryObj.category = category;
+            if (status !== '') queryObj.status = status === 'true'; // Convertir a booleano, solo si no es vacío
+
+            if (Object.keys(queryObj).length > 0) {
+                params.append('query', JSON.stringify(queryObj));
             }
-            if (!formData.has('status')) {
-                product.status = false;
-            }
 
-            try {
-                const response = await fetch('/api/products', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(product)
-                });
+            window.location.href = `/products?${params.toString()}`;
+        });
 
-                const data = await response.json();
+        // Listener para los botones "Agregar al Carrito" (delegación de eventos)
+        productsList.addEventListener('click', async (event) => {
+            if (event.target.classList.contains('add-to-cart-button')) {
+                const productId = event.target.dataset.productId;
+                // ID de carrito hardcodeado para demostración. En una app real, vendría de la sesión del usuario.
+                // Asegúrate de que este ID de carrito exista en tu DB o crea uno si no existe.
+                const cartId = '6699a221f7c7b8e2b8c9d0e1'; // <-- ¡IMPORTANTE! Reemplaza con un ID de carrito válido de tu DB
 
-                if (response.ok) {
-                    showMessage('Producto agregado exitosamente!');
-                    productForm.reset();
-                    document.getElementById('status').checked = true;
-                } else {
-                    showMessage(`Error al agregar producto: ${data.error || response.statusText}`, 'error');
+                try {
+                    const response = await fetch(`/api/carts/${cartId}/product/${productId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        showMessage('Producto agregado al carrito!');
+                    } else {
+                        showMessage(`Error al agregar producto al carrito: ${data.message || response.statusText}`, 'error');
+                    }
+                } catch (error) {
+                    console.error('Error en la solicitud para agregar al carrito:', error);
+                    showMessage('Error de conexión al servidor al agregar al carrito.', 'error');
                 }
-            } catch (error) {
-                console.error('Error en la solicitud:', error);
-                showMessage('Error de conexión al servidor.', 'error');
             }
         });
 
         // Escuchar eventos de 'newProduct' desde el servidor WebSocket
         socket.on('newProduct', (product) => {
             console.log('Nuevo producto recibido por WebSocket:', product);
-            addProductToDOM(product);
+            // No agregamos directamente aquí para evitar duplicados en paginación.
+            // La recarga de la página o la actualización de la lista paginada manejará esto.
+            showMessage('¡Nuevo producto disponible! (Puede que necesites recargar o ajustar filtros para verlo)');
         });
 
         // Escuchar eventos de 'deletedProduct' desde el servidor WebSocket
         socket.on('deletedProduct', (productId) => {
             console.log('Producto eliminado por WebSocket:', productId);
-            removeProductFromDOM(productId);
+            removeProductFromDOM(productId); // Si el producto eliminado está en la página actual
             showMessage(`Producto con ID ${productId} eliminado.`, 'success');
         });
 
         // Escuchar eventos de 'updatedProduct' desde el servidor WebSocket
         socket.on('updatedProduct', (updatedProduct) => {
             console.log('Producto actualizado por WebSocket:', updatedProduct);
-            updateProductInDOM(updatedProduct);
-            showMessage(`Producto con ID ${updatedProduct.id} actualizado.`, 'success');
+            updateProductInDOM(updatedProduct); // Si el producto actualizado está en la página actual
+            showMessage(`Producto con ID ${updatedProduct._id} actualizado.`, 'success');
         });
 
     </script>
